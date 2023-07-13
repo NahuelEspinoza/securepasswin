@@ -4,15 +4,15 @@ setlocal enabledelayedexpansion
 REM Carpeta de almacenamiento de contraseñas
 set "password_folder=C:\PasswordManager"
 
-REM Solicitar contraseña maestra de forma segura
+REM Solicitar contrasena maestra de forma segura
 set "master_password="
-echo Ingrese la contraseña maestra: 
+echo Ingrese la contrasena maestra: 
 call :MaskInput master_password
 
-REM Generar una clave segura a partir de la contraseña maestra
+REM Generar una clave segura a partir de la contrasena maestra
 openssl enc -aes-256-gcm -pbkdf2 -iter 100000 -salt -pass pass:!master_password! -md sha512 -out "%password_folder%\master_password.bin" > nul
 
-REM Limpiar la variable de la contraseña maestra
+REM Limpiar la variable de la contrasena maestra
 set "master_password="
 
 REM Verificación de integridad
@@ -21,14 +21,14 @@ certutil -hashfile "%password_folder%\master_password.bin" SHA256 > "%password_f
 REM Menú principal
 :MainMenu
 cls
-echo Gestor de contraseñas local
+echo Gestor de contrasenas local
 echo.
-echo 1. Agregar contraseña
-echo 2. Mostrar contraseña
+echo 1. Agregar contrasena
+echo 2. Mostrar contrasena
 echo 3. Salir
 echo.
 
-set /p "option=Ingrese una opción: "
+set /p "option=Ingrese una opcion: "
 
 if "%option%"=="1" (
     call :AddPassword
@@ -39,56 +39,56 @@ if "%option%"=="1" (
 ) else if "%option%"=="3" (
     exit
 ) else (
-    echo Opción inválida. Intente nuevamente.
+    echo Opción invalida. Intente nuevamente.
     pause
     goto :MainMenu
 )
 
-REM Función para agregar una contraseña
+REM Función para agregar una contrasena
 :AddPassword
 cls
 set /p "website=Ingrese el nombre del sitio web: "
 set /p "username=Ingrese el nombre de usuario: "
-set /p "password=Ingrese la contraseña: "
+set /p "password=Ingrese la contrasena: "
 
-REM Generar una contraseña segura
+REM Generar una contrasena segura
 set "generated_password="
 powershell -command "$generated_password = -join ((33..47) + (58..64) + (91..96) + (123..126) | Get-Random -Count 16 | ForEach-Object {[char]$_}); $generated_password" > "%password_folder%\generated_password.txt"
 set /p "generated_password=" < "%password_folder%\generated_password.txt"
 del "%password_folder%\generated_password.txt"
 
-REM Encriptación adicional
+REM Encriptacion adicional
 openssl enc -aes-256-gcm -pbkdf2 -iter 100000 -salt -pass file:"%password_folder%\master_password.bin" -md sha512 -out "%password_folder%\%website%.bin" > nul
 
-REM Verificación de integridad
+REM Verificacion de integridad
 certutil -hashfile "%password_folder%\%website%.bin" SHA256 > "%password_folder%\%website%.hash"
 
-echo Contraseña agregada exitosamente.
+echo Contrasena agregada exitosamente.
 pause
 exit /b
 
-REM Función para mostrar una contraseña
+REM Funcion para mostrar una contrasena
 :ShowPassword
 cls
 set /p "website=Ingrese el nombre del sitio web: "
 
-REM Verificación de integridad
+REM Verificacion de integridad
 certutil -hashfile "%password_folder%\%website%.bin" SHA256 > "%password_folder%\%website%.hash"
 certutil -hashfile "%password_folder%\%website%.bin" SHA256 | findstr /i /c:"%website%.bin" > nul
 if not errorlevel 1 (
-    REM Desencriptar contraseña
+    REM Desencriptar contrasena
     openssl enc -aes-256-gcm -pbkdf2 -iter 100000 -salt -pass file:"%password_folder%\master_password.bin" -md sha512 -in "%password_folder%\%website%.bin" -out "%password_folder%\decrypted_password.txt" > nul
     set /p "decrypted_password=" < "%password_folder%\decrypted_password.txt"
     del "%password_folder%\decrypted_password.txt"
 
-    echo Contraseña para %website%: %decrypted_password%
+    echo Contrasena para %website%: %decrypted_password%
 ) else (
-    echo No se encontró la contraseña para %website%.
+    echo No se encontro la contrasena para %website%.
 )
 pause
 exit /b
 
-REM Función para ocultar la entrada de texto
+REM Funcion para ocultar la entrada de texto
 :MaskInput
 setlocal enabledelayedexpansion
 set "input="
